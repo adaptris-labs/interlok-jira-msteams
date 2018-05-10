@@ -1,0 +1,32 @@
+[{
+  "operation": "shift",
+  "spec": {
+    "comment": {
+      "author": {
+        "displayName": "data.facts.[1].value"
+      },
+      "body": "data.text"
+    },
+    "issue": {
+      "key": "data.jiraIssue",
+      "fields": {
+        "summary": "data.facts.[0].value"
+      }
+    }
+  }
+},
+{
+  "operation": "default",
+  "spec": {
+    "data": {
+      "facts[]": {
+        "0": {
+          "name": "Summary:"
+        },
+        "1": {
+          "name": "Author:"
+        }
+      }
+    }
+  }
+}]

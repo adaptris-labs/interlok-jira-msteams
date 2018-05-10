@@ -1,0 +1,243 @@
+<adapter>
+  <unique-id>${adapter.unique.id}</unique-id>
+  <heartbeat-event-interval>
+    <unit>HOURS</unit>
+    <interval>24</interval>
+  </heartbeat-event-interval>
+  <shared-components>
+    <connections>
+      <jetty-embedded-connection>
+        <unique-id>shared-jetty</unique-id>
+      </jetty-embedded-connection>
+      <jdbc-connection>
+        <unique-id>csv-jdbc</unique-id>
+        <driver-imp>${database.driver}</driver-imp>
+        <connect-url>${database.url}</connect-url>
+        <always-validate-connection>false</always-validate-connection>
+      </jdbc-connection>
+    </connections>
+    <services>
+      <service-list>
+        <unique-id>get_teams_url</unique-id>
+        <services>
+          <json-path-service>
+            <unique-id>Get Issue And Project</unique-id>
+            <json-path-execution>
+              <source class="constant-data-input-parameter">
+                <value>$.issue.fields.project.name</value>
+              </source>
+              <target class="metadata-data-output-parameter">
+                <metadata-key>jiraProject</metadata-key>
+              </target>
+            </json-path-execution>
+          </json-path-service>
+          <jdbc-data-query-service>
+            <unique-id>Extract Teams URL</unique-id>
+            <connection class="shared-connection">
+              <lookup-name>csv-jdbc</lookup-name>
+            </connection>
+            <statement-creator class="jdbc-configured-sql-statement">
+              <statement>SELECT * FROM teams where PROJECT_NAME = '%message{jiraProject}'</statement>
+            </statement-creator>
+            <result-set-translator class="jdbc-first-row-metadata-translator">
+              <metadata-key-prefix></metadata-key-prefix>
+              <separator></separator>
+            </result-set-translator>
+          </jdbc-data-query-service>
+        </services>
+      </service-list>
+    </services>
+  </shared-components>
+  <channel-list>
+    <channel>
+      <unique-id>JiraWebhook</unique-id>
+      <message-error-handler class="standard-processing-exception-handler">
+        <processing-exception-service class="service-list">
+          <services>
+            <exception-report-service>
+              <exception-serializer class="exception-as-json-with-stacktrace"/>
+            </exception-report-service>
+            <standalone-producer>
+              <producer class="jetty-standard-response-producer">
+                <status-provider class="http-configured-status">
+                  <status>INTERNAL_ERROR_500</status>
+                </status-provider>
+                <content-type-provider class="http-configured-content-type-provider">
+                  <mime-type>application/json</mime-type>
+                </content-type-provider>
+                <send-payload>true</send-payload>
+              </producer>
+            </standalone-producer>
+          </services>
+        </processing-exception-service>
+      </message-error-handler>
+      <consume-connection class="shared-connection">
+        <lookup-name>shared-jetty</lookup-name>
+      </consume-connection>
+      <workflow-list>
+        <pooling-workflow>
+          <unique-id>JiraWebhook</unique-id>
+          <consumer class="jetty-message-consumer">
+            <unique-id>/webhooks/jira</unique-id>
+            <destination class="configured-consume-destination">
+              <destination>/webhooks/jira/*</destination>
+              <configured-thread-name>jira-webhook</configured-thread-name>
+            </destination>
+            <parameter-handler class="jetty-http-parameters-as-metadata"/>
+            <header-handler class="jetty-http-headers-as-metadata">
+              <header-prefix>Jira_</header-prefix>
+            </header-handler>
+          </consumer>
+          <service-collection class="service-list">
+            <!-- Need to check one of the webhook "push" details to see the
+                payload
+            -->
+            <services>
+              <standalone-producer>
+                <unique-id>Send_202</unique-id>
+                <producer class="jetty-standard-response-producer">
+                  <status-provider class="http-configured-status">
+                    <status>ACCEPTED_202</status>
+                  </status-provider>
+                  <response-header-provider class="jetty-no-response-headers"/>
+                  <send-payload>false</send-payload>
+                </producer>
+              </standalone-producer>
+              <jetty-commit-response/>
+              <!-- Generalised flow
+                   Figure out the project based on the JSON path.
+                   Do a select on our CSV database based on the project to find the right "msteams webhook"
+                   - Discard if not found??
+                   Do a mapping to a standardised format use one of the legacy ones https://messagecardplayground.azurewebsites.net/
+                   Do the post.
+              -->
+              <json-path-service>
+                <unique-id>Get_WebhookEvent</unique-id>
+                <json-path-execution>
+                  <source class="constant-data-input-parameter">
+                    <value>$.webhookEvent</value>
+                  </source>
+                  <target class="metadata-data-output-parameter">
+                    <metadata-key>webhookEvent</metadata-key>
+                  </target>
+                </json-path-execution>
+              </json-path-service>
+              <branching-service-collection>
+                <unique-id>handleJiraIssue</unique-id>
+                <first-service-id>isIssue</first-service-id>
+                <services>
+                  <metadata-value-branching-service>
+                    <unique-id>isIssue</unique-id>
+                    <value-matcher class="ignores-case-value-matcher"/>
+                    <default-service-id>NoOp</default-service-id>
+                    <metadata-key>webhookEvent</metadata-key>
+                    <metadata-to-service-id-mappings>
+                      <key-value-pair>
+                        <key>jira:issue_created</key>
+                        <value>issueCreated</value>
+                      </key-value-pair>
+                      <key-value-pair>
+                        <key>jira:issue_updated</key>
+                        <value>issueUpdate</value>
+                      </key-value-pair>
+                      <key-value-pair>
+                        <key>comment_created</key>
+                        <value>issueUpdate</value>
+                      </key-value-pair>
+                    </metadata-to-service-id-mappings>
+                  </metadata-value-branching-service>
+                  <service-list>
+                    <unique-id>NoOp</unique-id>
+                    <services>
+                      <!-- Don't know what to do, capture it for posterity??
+                      <standalone-producer>
+                        <connection class="null-connection"/>
+                        <producer class="fs-producer">
+                          <destination class="configured-produce-destination">
+                            <destination>${adapter.fs.produce.url}/jira_webhooks</destination>
+                          </destination>
+                          <create-dirs>true</create-dirs>
+                          <fs-worker class="fs-nio-worker"/>
+                        </producer>
+                      </standalone-producer>
+                       -->
+                    </services>
+                  </service-list>
+                  <service-list>
+                    <unique-id>issueUpdate</unique-id>
+                    <services>
+                      <shared-service>
+                        <lookup-name>get_teams_url</lookup-name>
+                      </shared-service>
+                      <json-transform-service>
+                        <mapping-spec class="file-data-input-parameter">
+                          <url>${json.transform.issueUpdate}</url>
+                        </mapping-spec>
+                      </json-transform-service>
+                      <json-transform-service>
+                        <mapping-spec class="file-data-input-parameter">
+                          <url>${json.transform.msteams}</url>
+                        </mapping-spec>
+                      </json-transform-service>
+                      <apache-http-request-service>
+                        <url>%message{TEAMS_URL}</url>
+                        <method>POST</method>
+                        <content-type>application/json</content-type>
+                      </apache-http-request-service>
+                    </services>
+                  </service-list>
+                  <service-list>
+                    <unique-id>issueCreated</unique-id>
+                    <services>
+                      <shared-service>
+                        <lookup-name>get_teams_url</lookup-name>
+                      </shared-service>
+                      <json-transform-service>
+                        <mapping-spec class="file-data-input-parameter">
+                          <url>${json.transform.issueCreated}</url>
+                        </mapping-spec>
+                      </json-transform-service>
+                      <json-transform-service>
+                        <mapping-spec class="file-data-input-parameter">
+                          <url>${json.transform.msteams}</url>
+                        </mapping-spec>
+                      </json-transform-service>
+                      <apache-http-request-service>
+                        <url>%message{TEAMS_URL}</url>
+                        <method>POST</method>
+                        <content-type>application/json</content-type>
+                      </apache-http-request-service>
+                    </services>
+                  </service-list>
+                  <service-list>
+                    <unique-id>commentCreated</unique-id>
+                    <services>
+                      <shared-service>
+                        <lookup-name>get_teams_url</lookup-name>
+                      </shared-service>
+                      <json-transform-service>
+                        <mapping-spec class="file-data-input-parameter">
+                          <url>${json.transform.commentCreated}</url>
+                        </mapping-spec>
+                      </json-transform-service>
+                      <json-transform-service>
+                        <mapping-spec class="file-data-input-parameter">
+                          <url>${json.transform.msteams}</url>
+                        </mapping-spec>
+                      </json-transform-service>
+                      <apache-http-request-service>
+                        <url>%message{TEAMS_URL}</url>
+                        <method>POST</method>
+                        <content-type>application/json</content-type>
+                      </apache-http-request-service>
+                    </services>
+                  </service-list>
+                </services>
+              </branching-service-collection>
+            </services>
+          </service-collection>
+        </pooling-workflow>
+      </workflow-list>
+    </channel>
+  </channel-list>
+</adapter>

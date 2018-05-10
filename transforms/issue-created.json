@@ -1,0 +1,51 @@
+[{
+  "operation": "shift",
+  "spec": {
+    "user": {
+      "displayName": "data.facts.[4].value"
+    },
+    "issue": {
+      "key": "data.facts.[1].value",
+      "@key": "data.jiraIssue",
+      "fields": {
+        "project": {
+          "name": "data.facts.[0].value"
+        },
+        "summary": "data.text",
+        "assignee": {
+          "displayName": "data.facts.[3].value"
+        },
+        "status": {
+          "name": "data.facts.[2].value"
+        }
+      }
+    }
+  }
+},
+{
+  "operation": "default",
+  "spec": {
+    "data": {
+      "facts[]": {
+        "0": {
+          "name": "Project:"
+        },
+        "1": {
+          "name": "Issue:"
+        },
+        "2": {
+          "name": "Status:",
+          "value": "Unknown"
+        },
+        "3": {
+          "name": "Assignee:",
+          "value": "None"
+        },
+        "4": {
+          "name": "User:",
+          "value": "Nobody"
+        }
+      }
+    }
+  }
+}]

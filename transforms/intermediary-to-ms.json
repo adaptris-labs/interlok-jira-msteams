@@ -1,0 +1,46 @@
+[{
+  "operation": "modify-overwrite-beta",
+  "spec": {
+    "data": {
+      "jiraSummary": "=concat('Jira #', @(1,jiraIssue), ' Updated')",
+      "jiraLink": "=concat('https://adaptris.atlassian.net/browse/', @(1,jiraIssue))"
+    }
+  }
+},
+{
+  "operation": "shift",
+  "spec": {
+    "data": {
+      "jiraSummary": "summary",
+      "@jiraSummary": "title",
+      "facts": "sections.[0].&",
+      "text": "sections.[0].&",
+      "jiraLink": "potentialAction.[].targets.[].uri"
+    }
+  }
+},
+{
+  "operation": "default",
+  "spec": {
+    "@type": "MessageCard",
+    "@context": "http://schema.org/extensions",
+    "sections[]": {
+      "0": {
+        "activityTitle": "Jira Issue Updated",
+        "activitySubtitle": "I have an Interlok hammer; this is a nail",
+        "activityImage": "https://development.adaptris.net/images/adaptris-logo.png"
+      }
+    },
+    "potentialAction[]": {
+      "0": {
+        "@type": "OpenUri",
+        "name": "View Issue",
+        "targets[]": {
+          "0": {
+            "os": "default"
+          }
+        }
+      }
+    }
+  }
+}]

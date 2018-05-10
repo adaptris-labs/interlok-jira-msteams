@@ -1,0 +1,44 @@
+[{
+  "operation": "shift",
+  "spec": {
+    "issue": {
+      "@key": "data.jiraIssue"
+    },
+    "changelog": {
+      "items" :{
+        "*" : {
+          "field": "data.facts.[0].name",
+          "fromString": "data.facts.[0].value1",
+          "toString": "data.facts.[0].value2"
+        }
+      }
+    }
+  }
+},
+{
+  "operation": "modify-overwrite-beta",
+  "spec": {
+    "data": {
+      "facts": {
+        "*": {
+          "value": "=concat(@(1,value1), ' --> ', @(1,value2))"
+        }
+      }
+      
+    }
+  }
+},
+{
+  "operation": "remove",
+  "spec": {
+    "data": {
+      "facts": {
+        "*": {
+          "value1": "",
+          "value2": ""
+        }
+      }
+      
+    }
+  }
+}]
