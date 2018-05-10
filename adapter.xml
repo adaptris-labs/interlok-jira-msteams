@@ -142,7 +142,7 @@
                       </key-value-pair>
                       <key-value-pair>
                         <key>comment_created</key>
-                        <value>issueUpdate</value>
+                        <value>commentCreated</value>
                       </key-value-pair>
                     </metadata-to-service-id-mappings>
                   </metadata-value-branching-service>
@@ -231,6 +231,7 @@
                         <content-type>application/json</content-type>
                       </apache-http-request-service>
                     </services>
+
                   </service-list>
                 </services>
               </branching-service-collection>
