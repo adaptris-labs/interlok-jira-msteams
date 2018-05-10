@@ -10,7 +10,7 @@
     "issue": {
       "key": "data.jiraIssue",
       "fields": {
-        "summary": "data.facts.[0].value"
+        "#Comment Created": "data.facts.[0].value"
       }
     }
   }
