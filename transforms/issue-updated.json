@@ -7,9 +7,9 @@
     "changelog": {
       "items" :{
         "*" : {
-          "field": "data.facts.[0].name",
-          "fromString": "data.facts.[0].value1",
-          "toString": "data.facts.[0].value2"
+          "field": "data.facts.[#2].name",
+          "fromString": "data.facts.[#2].value1",
+          "toString": "data.facts.[#2].value2"
         }
       }
     }
