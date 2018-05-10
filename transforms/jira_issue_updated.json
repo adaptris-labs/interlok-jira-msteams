@@ -21,10 +21,24 @@
     "data": {
       "facts": {
         "*": {
-          "value": "=concat(@(1,value1), ' --> ', @(1,value2))"
+          "value1": "=substring(@(1,value1), 0, 30)",
+          "value2": "=substring(@(1,value2), 0, 30)"
         }
       }
       
+    }
+  }
+},
+{
+  "operation": "modify-overwrite-beta",
+  "spec": {
+    "data": {
+      "facts": {
+        "*": {
+          "value": "=concat('\"', @(1,value1), '\" --> \"', @(1,value2), '\"')",
+          "name": "=concat(@(1,name), ':')"
+        }
+      }
     }
   }
 },
