@@ -122,6 +122,12 @@
                   </target>
                 </json-path-execution>
               </json-path-service>
+              <replace-metadata-value>
+                <search-value>:</search-value>
+                <replacement-value>_</replacement-value>
+                <replace-all>true</replace-all>
+                <metadata-key-regexp>webhookEvent</metadata-key-regexp>
+              </replace-metadata-value>
               <branching-service-collection>
                 <unique-id>handleJiraIssue</unique-id>
                 <first-service-id>isIssue</first-service-id>
@@ -133,16 +139,16 @@
                     <metadata-key>webhookEvent</metadata-key>
                     <metadata-to-service-id-mappings>
                       <key-value-pair>
-                        <key>jira:issue_created</key>
-                        <value>issueCreated</value>
+                        <key>jira_issue_created</key>
+                        <value>update_msteams</value>
                       </key-value-pair>
                       <key-value-pair>
-                        <key>jira:issue_updated</key>
-                        <value>issueUpdate</value>
+                        <key>jira_issue_updated</key>
+                        <value>update_msteams</value>
                       </key-value-pair>
                       <key-value-pair>
                         <key>comment_created</key>
-                        <value>commentCreated</value>
+                        <value>update_msteams</value>
                       </key-value-pair>
                     </metadata-to-service-id-mappings>
                   </metadata-value-branching-service>
@@ -164,19 +170,23 @@
                     </services>
                   </service-list>
                   <service-list>
-                    <unique-id>issueUpdate</unique-id>
+                    <unique-id>update_msteams</unique-id>
                     <services>
                       <shared-service>
                         <lookup-name>get_teams_url</lookup-name>
                       </shared-service>
                       <json-transform-service>
                         <mapping-spec class="file-data-input-parameter">
-                          <url>${json.transform.issueUpdate}</url>
+                          <destination class="configured-destination">
+                            <destination>${json.transform.base.url}/%message{webhookEvent}.json</destination>
+                          </destination>
                         </mapping-spec>
                       </json-transform-service>
                       <json-transform-service>
                         <mapping-spec class="file-data-input-parameter">
-                          <url>${json.transform.msteams}</url>
+                          <destination class="configured-destination">
+                            <destination>${json.transform.msteams}</destination>
+                          </destination>
                         </mapping-spec>
                       </json-transform-service>
                       <apache-http-request-service>
@@ -185,53 +195,6 @@
                         <content-type>application/json</content-type>
                       </apache-http-request-service>
                     </services>
-                  </service-list>
-                  <service-list>
-                    <unique-id>issueCreated</unique-id>
-                    <services>
-                      <shared-service>
-                        <lookup-name>get_teams_url</lookup-name>
-                      </shared-service>
-                      <json-transform-service>
-                        <mapping-spec class="file-data-input-parameter">
-                          <url>${json.transform.issueCreated}</url>
-                        </mapping-spec>
-                      </json-transform-service>
-                      <json-transform-service>
-                        <mapping-spec class="file-data-input-parameter">
-                          <url>${json.transform.msteams}</url>
-                        </mapping-spec>
-                      </json-transform-service>
-                      <apache-http-request-service>
-                        <url>%message{TEAMS_URL}</url>
-                        <method>POST</method>
-                        <content-type>application/json</content-type>
-                      </apache-http-request-service>
-                    </services>
-                  </service-list>
-                  <service-list>
-                    <unique-id>commentCreated</unique-id>
-                    <services>
-                      <shared-service>
-                        <lookup-name>get_teams_url</lookup-name>
-                      </shared-service>
-                      <json-transform-service>
-                        <mapping-spec class="file-data-input-parameter">
-                          <url>${json.transform.commentCreated}</url>
-                        </mapping-spec>
-                      </json-transform-service>
-                      <json-transform-service>
-                        <mapping-spec class="file-data-input-parameter">
-                          <url>${json.transform.msteams}</url>
-                        </mapping-spec>
-                      </json-transform-service>
-                      <apache-http-request-service>
-                        <url>%message{TEAMS_URL}</url>
-                        <method>POST</method>
-                        <content-type>application/json</content-type>
-                      </apache-http-request-service>
-                    </services>
-
                   </service-list>
                 </services>
               </branching-service-collection>
