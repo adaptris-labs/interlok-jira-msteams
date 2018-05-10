@@ -171,29 +171,61 @@
                   </service-list>
                   <service-list>
                     <unique-id>update_msteams</unique-id>
+                    <allow-forward-search>true</allow-forward-search>
                     <services>
-                      <shared-service>
-                        <lookup-name>get_teams_url</lookup-name>
-                      </shared-service>
-                      <json-transform-service>
-                        <mapping-spec class="file-data-input-parameter">
-                          <destination class="configured-destination">
-                            <destination>${json.transform.base.url}/%message{webhookEvent}.json</destination>
-                          </destination>
-                        </mapping-spec>
-                      </json-transform-service>
-                      <json-transform-service>
-                        <mapping-spec class="file-data-input-parameter">
-                          <destination class="configured-destination">
-                            <destination>${json.transform.msteams}</destination>
-                          </destination>
-                        </mapping-spec>
-                      </json-transform-service>
-                      <apache-http-request-service>
-                        <url>%message{TEAMS_URL}</url>
-                        <method>POST</method>
-                        <content-type>application/json</content-type>
-                      </apache-http-request-service>
+                      <json-path-service>
+                        <unique-id>Get_WebhookEvent</unique-id>
+                        <json-path-execution>
+                          <source class="constant-data-input-parameter">
+                            <value>$.issue.fields.issuetype.name</value>
+                          </source>
+                          <target class="metadata-data-output-parameter">
+                            <metadata-key>issueType</metadata-key>
+                          </target>
+                        </json-path-execution>
+                      </json-path-service>
+                      <!-- Use Forward search to skip the next service-list if we don't want it -->
+                      <metadata-value-branching-service>
+                        <value-matcher class="ignores-case-value-matcher"/>
+                        <default-service-id>do_update</default-service-id>
+                        <metadata-key>issueType</metadata-key>
+                        <metadata-to-service-id-mappings>
+                          <key-value-pair>
+                            <key>Sub-Task</key>
+                            <value>end</value>
+                          </key-value-pair>
+                        </metadata-to-service-id-mappings>
+                      </metadata-value-branching-service>
+                      <service-list>
+                        <unique-id>do_update</unique-id>
+                        <services>
+                          <shared-service>
+                            <lookup-name>get_teams_url</lookup-name>
+                          </shared-service>
+                          <json-transform-service>
+                            <mapping-spec class="file-data-input-parameter">
+                              <destination class="configured-destination">
+                                <destination>${json.transform.base.url}/%message{webhookEvent}.json</destination>
+                              </destination>
+                            </mapping-spec>
+                          </json-transform-service>
+                          <json-transform-service>
+                            <mapping-spec class="file-data-input-parameter">
+                              <destination class="configured-destination">
+                                <destination>${json.transform.msteams}</destination>
+                              </destination>
+                            </mapping-spec>
+                          </json-transform-service>
+                          <apache-http-request-service>
+                            <url>%message{TEAMS_URL}</url>
+                            <method>POST</method>
+                            <content-type>application/json</content-type>
+                          </apache-http-request-service>
+                        </services>
+                      </service-list>
+                      <service-list>
+                        <unique-id>end</unique-id>
+                      </service-list>
                     </services>
                   </service-list>
                 </services>
