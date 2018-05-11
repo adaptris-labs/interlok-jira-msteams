@@ -3,15 +3,12 @@
   "spec": {
     "comment": {
       "author": {
-        "displayName": "data.facts.[1].value"
+        "displayName": "data.facts.[0].value"
       },
       "body": "data.text"
     },
     "issue": {
-      "key": "data.jiraIssue",
-      "fields": {
-        "#Comment Created": "data.facts.[0].value"
-      }
+      "key": "data.jiraIssue"
     }
   }
 },
@@ -19,11 +16,9 @@
   "operation": "default",
   "spec": {
     "data": {
+      "activityTitle": "Comment Created",
       "facts[]": {
         "0": {
-          "name": "Summary:"
-        },
-        "1": {
           "name": "Author:"
         }
       }

@@ -13,6 +13,7 @@
     "data": {
       "jiraSummary": "summary",
       "@jiraSummary": "title",
+      "activityTitle": "sections.[0].&",
       "facts": "sections.[0].&",
       "text": "sections.[0].&",
       "jiraLink": "potentialAction.[].targets.[].uri"
@@ -26,7 +27,6 @@
     "@context": "http://schema.org/extensions",
     "sections[]": {
       "0": {
-        "activityTitle": "Jira Issue Updated",
         "activitySubtitle": "I have an Interlok hammer; this is a nail",
         "activityImage": "https://development.adaptris.net/images/adaptris-logo.png"
       }

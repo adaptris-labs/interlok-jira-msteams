@@ -26,6 +26,7 @@
   "operation": "default",
   "spec": {
     "data": {
+      "activityTitle": "Issue Created",
       "facts[]": {
         "0": {
           "name": "Project:"

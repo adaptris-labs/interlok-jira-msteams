@@ -55,4 +55,12 @@
       
     }
   }
+},
+{
+  "operation": "default",
+  "spec": {
+    "data": {
+      "activityTitle": "Issue Updated"
+    }
+  }
 }]
