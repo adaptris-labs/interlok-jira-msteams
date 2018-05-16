@@ -223,14 +223,14 @@
                           <shared-service>
                             <lookup-name>get_teams_url</lookup-name>
                           </shared-service>
+                          <shared-service>
+                            <lookup-name>map_to_teams_json</lookup-name>
+                          </shared-service>
                           <metadata-exists-branching-service>
                             <default-service-id>end_do_update</default-service-id>
                             <metadata-exists-service-id>do_post</metadata-exists-service-id>
                             <metadata-key>TEAMS_URL</metadata-key>
                           </metadata-exists-branching-service>
-                          <shared-service>
-                            <lookup-name>map_to_teams_json</lookup-name>
-                          </shared-service>
                           <apache-http-request-service>
                             <unique-id>do_post</unique-id>
                             <url>%message{TEAMS_URL}</url>
